@@ -58,6 +58,10 @@ const userSchema = new Schema(
       type: Array,
       default: [],
     },
+    isAdmin: {
+      type: Boolean,
+      default: false,
+    },
     refreshToken: {
       type: String,
     },
@@ -93,6 +97,7 @@ userSchema.methods.generateAccessToken = function () {
       email: this.email,
       username: this.username,
       fullName: this.fullName,
+      isAdmin: this.isAdmin,
     },
     process.env.ACCESS_TOKEN_SECRET,
     {
