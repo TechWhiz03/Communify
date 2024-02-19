@@ -2,7 +2,7 @@ import validator from "validator";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { uploadOnCloudinary, deleteOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 
@@ -183,4 +183,110 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   }
 });
 
-export { registerUser, loginUser, refreshAccessToken };
+// Update Account Details
+const updateAccountDetails = asyncHandler(async (req, res) => {
+  const { fullName, email, mob, bio } = req.body; // fields user can update
+
+  if (!(fullName && email && mob && bio)) {
+    throw new ApiError(400, "All fields are required");
+  }
+
+  if (req.user._id == req.params.id || req.user.isAdmin) {
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: {
+          fullName,
+          email,
+          mob,
+          bio,
+        },
+      },
+      {
+        new: true,
+      }
+    ).select("-password");
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, user, "Account details updated successfully"));
+  } else {
+    throw new ApiError(403, "Allowed to update only your account");
+  }
+});
+
+// Change Password
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+
+  const user = await User.findById(req.user?._id);
+  const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+
+  if (!isPasswordCorrect) {
+    throw new ApiError(400, "Invalid old password");
+  }
+
+  if (req.user._id == req.params.id || req.user.isAdmin) {
+    user.password = newPassword;
+    await user.save({ validateBeforeSave: false });
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, {}, "Password updated successfully"));
+  } else {
+    throw new ApiError(403, "Allowed to update only your account");
+  }
+});
+
+// Update Avatar
+const updateAvatar = asyncHandler(async (req, res) => {
+  if (req.user._id == req.params.id || req.user.isAdmin) {
+    const avatarLocalPath = req.file?.path;
+
+    if (!avatarLocalPath) {
+      throw new ApiError(400, "Avatar file missing");
+    }
+
+    // Get user's avatar information before updation
+    const currentUser = await User.findById(req.user?._id).select(
+      "-password -refreshToken"
+    );
+    const previousAvatarId = currentUser.avatar.publicId;
+
+    const avatar = await uploadOnCloudinary(avatarLocalPath);
+
+    if (!avatar.url) {
+      throw new ApiError(400, "Error while uploading avatar on cloudinary");
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user?._id,
+      {
+        $set: {
+          avatar: { publicId: avatar?.public_id, url: avatar?.url },
+        },
+      },
+      { new: true }
+    ).select("-password");
+
+    // Delete previous avatar on Cloudinary if it exists
+    if (previousAvatarId) {
+      await deleteOnCloudinary(previousAvatarId);
+    }
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, user, "Avatar updated successfully"));
+  } else {
+    throw new ApiError(403, "Allowed to update only your account");
+  }
+});
+
+export {
+  registerUser,
+  loginUser,
+  refreshAccessToken,
+  updateAccountDetails,
+  changeCurrentPassword,
+  updateAvatar,
+};

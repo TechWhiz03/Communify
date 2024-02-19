@@ -3,8 +3,12 @@ import {
   registerUser,
   loginUser,
   refreshAccessToken,
+  updateAccountDetails,
+  changeCurrentPassword,
+  updateAvatar,
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
+import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
@@ -13,5 +17,13 @@ router.route("/login").post(loginUser);
 
 // secured routes [routes to be given to user only if logged in | login verification through "verifyJWT (auth) middleware"]
 router.route("/refresh-token").post(refreshAccessToken); // token verified in controller itself hence no "verifyJWT middleware" required
+router
+  .route("/update-account-details/:id")
+  .patch(verifyJWT, updateAccountDetails);
+router.route("/change-password/:id").post(verifyJWT, changeCurrentPassword);
+
+router
+  .route("/update-avatar/:id")
+  .patch(verifyJWT, upload.single("avatar"), updateAvatar);
 
 export default router;
