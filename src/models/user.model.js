@@ -38,6 +38,7 @@ const userSchema = new Schema(
     },
     bio: {
       type: String,
+      default: "",
     },
     avatar: {
       publicId: {
