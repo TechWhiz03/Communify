@@ -6,6 +6,8 @@ import {
   updateAccountDetails,
   changeCurrentPassword,
   updateAvatar,
+  getCurrentUser,
+  userStats,
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
@@ -26,4 +28,6 @@ router
   .route("/update-avatar/:id")
   .patch(verifyJWT, upload.single("avatar"), updateAvatar);
 
+router.route("/current-user").get(verifyJWT, getCurrentUser);
+router.route("/user-stats").get(verifyJWT, userStats);
 export default router;
