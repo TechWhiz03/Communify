@@ -289,7 +289,7 @@ const getCurrentUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, req.user, "Current User fetched successfully"));
 });
 
-//Get User Stats
+// Get User Stats
 const userStats = asyncHandler(async (req, res) => {
   try {
     const stats = await User.aggregate([
@@ -324,6 +324,60 @@ const userStats = asyncHandler(async (req, res) => {
   }
 });
 
+// Toggle Following a Friend
+const toggleFollow = asyncHandler(async (req, res) => {
+  if (req.user._id !== req.params.id) {
+    try {
+      const user = await User.findById(req.params.id);
+      if (user) {
+        const name = user.username;
+        const currentUser = await User.findById(req.user._id);
+        if (!user.followers.includes(req.user._id)) {
+          await user.updateOne({ $push: { followers: req.user._id } });
+          await currentUser.updateOne({ $push: { following: req.params.id } });
+          return res
+            .status(200)
+            .json(new ApiResponse(200, `Following ${name}`));
+        } else {
+          await user.updateOne({ $pull: { followers: req.user._id } });
+          await currentUser.updateOne({ $pull: { following: req.params.id } });
+          return res
+            .status(200)
+            .json(new ApiResponse(200, `Unfollowed ${name}`));
+        }
+      } else {
+        throw new ApiError(500, "Id not found");
+      }
+    } catch (err) {
+      throw new ApiError(500, err.message);
+    }
+  } else {
+    throw new ApiError(403, "You can't follow yourself");
+  }
+});
+
+// Get Friends
+const friends = asyncHandler(async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    const friends = await Promise.all(
+      user.following.map((friendId) => {
+        return User.findById(friendId);
+      })
+    );
+    let friendList = [];
+    friends.map((friend) => {
+      const { _id, username, avatar } = friend;
+      friendList.push({ _id, username, avatar });
+    });
+    return res
+      .status(200)
+      .json(new ApiResponse(200, friendList, "Friends returned successfully"));
+  } catch (err) {
+    throw new ApiError(500, err.message);
+  }
+});
+
 export {
   registerUser,
   loginUser,
@@ -333,4 +387,6 @@ export {
   updateAvatar,
   getCurrentUser,
   userStats,
+  toggleFollow,
+  friends,
 };
