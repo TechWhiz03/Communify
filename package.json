@@ -1,0 +1,19 @@
+{
+  "name": "communify",
+  "version": "1.0.0",
+  "description": "Platform involving content interaction through seamless CRUD operations.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TechWhiz03/Communify.git"
+  },
+  "author": "Aditya Rohila",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TechWhiz03/Communify/issues"
+  },
+  "homepage": "https://github.com/TechWhiz03/Communify#readme"
+}
