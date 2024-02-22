@@ -290,41 +290,6 @@ const getCurrentUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, req.user, "Current User fetched successfully"));
 });
 
-// Get User Stats
-const userStats = asyncHandler(async (req, res) => {
-  try {
-    const stats = await User.aggregate([
-      {
-        $project: {
-          //Projects the month & year field from the createdAt field of each document.
-          year: { $year: "$createdAt" }, // Extract year from createdAt field
-          month: { $month: "$createdAt" }, // Return 1 for Jan, 2 for Feb, ...
-        },
-      },
-      {
-        $group: {
-          //Groups the doc by year & month
-          _id: { year: "$year", month: "$month" },
-          total: { $sum: 1 }, // Returns total users per month
-        },
-      },
-      {
-        $project: {
-          _id: 0, // Specifies to exclude the _id field from the output
-          year: "$_id.year", // Extracts the year field from the _id field and renames it as year.
-          month: "$_id.month",
-          total: 1, // Specifies to include the total field in the output.
-        },
-      },
-    ]);
-    return res
-      .status(200)
-      .json(new ApiResponse(200, stats, "User Stats fetched successfully"));
-  } catch (err) {
-    throw new ApiError(500, err.message);
-  }
-});
-
 // Toggle Following a Friend
 const toggleFollow = asyncHandler(async (req, res) => {
   if (req.user._id !== req.params.id) {
@@ -387,7 +352,6 @@ export {
   changeCurrentPassword,
   updateAvatar,
   getCurrentUser,
-  userStats,
   toggleFollow,
   friends,
 };

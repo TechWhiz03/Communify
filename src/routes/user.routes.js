@@ -7,7 +7,6 @@ import {
   changeCurrentPassword,
   updateAvatar,
   getCurrentUser,
-  userStats,
   toggleFollow,
   friends,
 } from "../controllers/user.controller.js";
@@ -31,7 +30,6 @@ router
   .patch(verifyJWT, upload.single("avatar"), updateAvatar);
 
 router.route("/current-user").get(verifyJWT, getCurrentUser);
-router.route("/user-stats").get(verifyJWT, userStats);
 router.route("/toggle-follow/:id").patch(verifyJWT, toggleFollow);
 router.route("/get-friends").get(verifyJWT, friends);
 
