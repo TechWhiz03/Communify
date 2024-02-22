@@ -25,7 +25,7 @@ const generateAccessAndRefreshTokens = async (userId) => {
 // Register User
 const registerUser = asyncHandler(async (req, res) => {
   // get user details
-  const { username, email, fullName, password, mob, bio } = req.body;
+  const { username, email, fullName, password, mob, bio, isAdmin } = req.body;
 
   // validation for not empty
   if (
@@ -73,6 +73,7 @@ const registerUser = asyncHandler(async (req, res) => {
     mob,
     bio,
     avatar: { publicId: avatar?.public_id, url: avatar?.url }, // cloudinary url
+    isAdmin: isAdmin || "false",
   });
 
   // check user creation & response
