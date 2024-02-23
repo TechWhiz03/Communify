@@ -79,11 +79,26 @@ const getUserPosts = asyncHandler(async (req, res) => {
   // find user posts
   const userPosts = await Post.find({ owner: userId });
 
+  // find friend's posts
+  const friendPosts = await Promise.all(
+    //Promise.all() to fetch posts from all the friends of a current user.
+    //Promise.all() allows you to wait for multiple promises to be resolved at the same time and get the results back as an array.
+    user.following.map((friendId) => {
+      //map() method is used to loop through the array and return an array of promises.
+      //map() method allows you to take each item in the array, do something with it, and store the results in a new array.
+      return Post.find({ user: friendId });
+    })
+  );
+
   try {
     return res
       .status(200)
       .json(
-        new ApiResponse(200, userPosts, "Fetched all posts successfully !!")
+        new ApiResponse(
+          200,
+          userPosts.concat(friendPosts),
+          "Fetched all posts successfully !!"
+        )
       );
   } catch (error) {
     throw new ApiError(400, "Cannot get posts");
