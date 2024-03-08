@@ -4,6 +4,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
 import { uploadOnCloudinary, deleteOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { sendEmail } from "../utils/nodemailer.js";
 import jwt from "jsonwebtoken";
 
 // Method to generate Access & Refresh tokens
@@ -83,6 +84,13 @@ const registerUser = asyncHandler(async (req, res) => {
   if (!createdUser) {
     throw new ApiError(500, "Something went wrong while registering");
   }
+
+  // send email notification
+  await sendEmail({
+    emailId: email,
+    subject: "Registered Successfully",
+    message: `Hello ${fullName}, you have successfully registered to Communify`,
+  });
 
   return res
     .status(201)
